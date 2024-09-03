@@ -14,7 +14,7 @@
 			],
 			"States": [
 				{
-					"Image": "imgs/actions/counter/key"
+					"Image": "imgs/actions/tracker/key"
 				}
 			],
 			"UserTitleEnabled": false

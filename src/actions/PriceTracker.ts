@@ -1,10 +1,11 @@
 import streamDeck, { action, DidReceiveSettingsEvent, KeyDownEvent, KeyUpEvent, SingletonAction, WillAppearEvent, WillDisappearEvent } from "@elgato/streamdeck";
 import Cron from "croner";
 import sharp from "sharp";
+import { IAction } from "./IAction";
 
 
-@action({ UUID: "dev.theca11.steam-price-tracker.watcher" })
-export class PriceTracker extends SingletonAction<ActionSettings> {
+@action({ UUID: "dev.theca11.steam-price-tracker.tracker" })
+export class PriceTracker extends IAction<ActionSettings> {
 	currentContexts = new Set<string>()
 	updatesCache = new Map<string, { appId: string, timestamp: number }>();
 	longPressCache = new Set<string>();
@@ -14,7 +15,7 @@ export class PriceTracker extends SingletonAction<ActionSettings> {
 		Cron('0 * * * *', () => {
 			for (const ctx of this.currentContexts) {
 				if (!this.updatesCache.has(ctx)) return;
-				this.update(ctx, this.updatesCache.get(ctx)!.appId);
+				this.update(ctx, this.updatesCache.get(ctx)!.appId, true);
 			}
 		});
 	}
@@ -54,27 +55,40 @@ export class PriceTracker extends SingletonAction<ActionSettings> {
 		this.update(ev.action.id, appId);
 	}
 
-	onKeyDown(ev: KeyDownEvent<ActionSettings>): void {
-		this.longPressCache.add(ev.action.id);
-		setTimeout(() => {
-			this.longPressCache.delete(ev.action.id);
-		}, 500)
+	protected onSinglePress(ev: KeyUpEvent<ActionSettings>): void | Promise<void> {
+		streamDeck.system.openUrl(`https://store.steampowered.com/app/${ev.payload.settings.appId}`)
 	}
 
-	onKeyUp(ev: KeyUpEvent<ActionSettings>): void {
-		if (this.longPressCache.has(ev.action.id)) {
-			this.longPressCache.delete(ev.action.id);
-			streamDeck.system.openUrl(`https://store.steampowered.com/app/${ev.payload.settings.appId}`)
-		}
-		else {
-			ev.action.showOk();
-			console.log('forcing update here')
-			for (const ctx of this.currentContexts) {
-				if (!this.updatesCache.has(ctx)) return;
-				this.update(ctx, this.updatesCache.get(ctx)!.appId, true);
-			}
+	protected onLongPress(ev: KeyDownEvent<ActionSettings>): void | Promise<void> {
+		ev.action.showOk();
+		console.log('forcing update here')
+		for (const ctx of this.currentContexts) {
+			if (!this.updatesCache.has(ctx)) return;
+			this.update(ctx, this.updatesCache.get(ctx)!.appId, true);
 		}
 	}
+
+	// onKeyDown(ev: KeyDownEvent<ActionSettings>): void {
+	// 	this.longPressCache.add(ev.action.id);
+	// 	setTimeout(() => {
+	// 		this.longPressCache.delete(ev.action.id);
+	// 	}, 500)
+	// }
+
+	// onKeyUp(ev: KeyUpEvent<ActionSettings>): void {
+	// 	if (this.longPressCache.has(ev.action.id)) {
+	// 		this.longPressCache.delete(ev.action.id);
+	// 		streamDeck.system.openUrl(`https://store.steampowered.com/app/${ev.payload.settings.appId}`)
+	// 	}
+	// 	else {
+	// 		ev.action.showOk();
+	// 		console.log('forcing update here')
+	// 		for (const ctx of this.currentContexts) {
+	// 			if (!this.updatesCache.has(ctx)) return;
+	// 			this.update(ctx, this.updatesCache.get(ctx)!.appId, true);
+	// 		}
+	// 	}
+	// }
 
 	async fetchData(appId: string): Promise<SteamApiData> {
 		const req = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}&filters=basic,price_overview`)
