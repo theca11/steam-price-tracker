@@ -1,14 +1,13 @@
-import streamDeck, { action, DidReceiveSettingsEvent, KeyDownEvent, KeyUpEvent, SingletonAction, WillAppearEvent, WillDisappearEvent } from "@elgato/streamdeck";
+import streamDeck, { action, DidReceiveSettingsEvent, KeyDownEvent, KeyUpEvent, WillAppearEvent, WillDisappearEvent } from "@elgato/streamdeck";
 import Cron from "croner";
 import sharp from "sharp";
+import { ActionSettings, SteamApiData, SteamApiResponse } from "../types";
 import { IAction } from "./IAction";
-
 
 @action({ UUID: "dev.theca11.steam-price-tracker.tracker" })
 export class PriceTracker extends IAction<ActionSettings> {
 	currentContexts = new Set<string>()
 	updatesCache = new Map<string, { appId: string, timestamp: number }>();
-	longPressCache = new Set<string>();
 
 	constructor() {
 		super();
@@ -67,28 +66,6 @@ export class PriceTracker extends IAction<ActionSettings> {
 			this.update(ctx, this.updatesCache.get(ctx)!.appId, true);
 		}
 	}
-
-	// onKeyDown(ev: KeyDownEvent<ActionSettings>): void {
-	// 	this.longPressCache.add(ev.action.id);
-	// 	setTimeout(() => {
-	// 		this.longPressCache.delete(ev.action.id);
-	// 	}, 500)
-	// }
-
-	// onKeyUp(ev: KeyUpEvent<ActionSettings>): void {
-	// 	if (this.longPressCache.has(ev.action.id)) {
-	// 		this.longPressCache.delete(ev.action.id);
-	// 		streamDeck.system.openUrl(`https://store.steampowered.com/app/${ev.payload.settings.appId}`)
-	// 	}
-	// 	else {
-	// 		ev.action.showOk();
-	// 		console.log('forcing update here')
-	// 		for (const ctx of this.currentContexts) {
-	// 			if (!this.updatesCache.has(ctx)) return;
-	// 			this.update(ctx, this.updatesCache.get(ctx)!.appId, true);
-	// 		}
-	// 	}
-	// }
 
 	async fetchData(appId: string): Promise<SteamApiData> {
 		const req = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}&filters=basic,price_overview`)
@@ -166,29 +143,3 @@ export class PriceTracker extends IAction<ActionSettings> {
 		return image;
 	}
 }
-
-
-
-/**
- * Settings for {@link PriceTracker}.
- */
-type ActionSettings = {
-	appId?: string;
-};
-
-type SteamApiResponse = {
-	[appId: string]: {
-		success: boolean,
-		data: SteamApiData
-	}
-}
-
-type SteamApiData = {
-	name: string,
-	steam_appid: number,
-	capsule_image: string,
-	price_overview?: {
-		final_formatted: string
-		discount_percent: number,
-	}
-};
