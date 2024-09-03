@@ -1,0 +1,47 @@
+{
+	"Name": "Steam Price Tracker",
+	"Version": "0.1.0.0",
+	"Author": "the_ca11",
+	"Actions": [
+		{
+			"Name": "Price Tracker",
+			"UUID": "dev.theca11.steam-price-tracker.tracker",
+			"Icon": "imgs/actions/tracker/icon",
+			"Tooltip": "Displays the current price of a Steam app",
+			"PropertyInspectorPath": "ui/tracker.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/counter/key"
+				}
+			],
+			"UserTitleEnabled": false
+		}
+	],
+	"Category": "Steam Price Tracker",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"Description": "Displays the current price of a Steam app",
+	"Icon": "imgs/plugin/marketplace",
+	"SDKVersion": 2,
+	"Software": {
+		"MinimumVersion": "6.5"
+	},
+	"OS": [
+		{
+			"Platform": "mac",
+			"MinimumVersion": "10.15"
+		},
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		}
+	],
+	"Nodejs": {
+		"Version": "20",
+		"Debug": "--inspect=127.0.0.1:9229"
+	},
+	"UUID": "dev.theca11.steam-price-tracker"
+}
