@@ -4,33 +4,30 @@ import sharp from "sharp";
 import { ActionSettings, AppInfo, GlobalSettings, SteamApiAppsResponse, SteamApiData, SteamApiResponse } from "../../types";
 import { IAction } from "./IAction";
 
+
 @action({ UUID: "dev.theca11.steam-price-tracker.tracker" })
 export class PriceTracker extends IAction<ActionSettings> {
-	currentContexts = new Set<string>()
-	updatesCache = new Map<string, { appId: string, timestamp: number }>();
+	// currentContexts = new Set<string>()
+	// updatesCache = new Map<string, { appId: string, timestamp: number }>();
+
+	visibleContexts = new Map<string, string>();
+	updatedContexts = new Map<string, number>();
+
+	countryCode: string | null = null;
 
 	steamApps: AppInfo[] = []
 	appListLastUpdated = 0;
 
-	countryCode = '';
-
 	constructor() {
 		super();
 		Cron('0 * * * *', () => {
-			for (const ctx of this.currentContexts) {
-				if (!this.updatesCache.has(ctx)) return;
-				this.update(ctx, this.updatesCache.get(ctx)!.appId, true);
-			}
+			this.updateAll(true);
 		});
 
 		// Global settings
-		streamDeck.settings.getGlobalSettings<GlobalSettings>().then(settings => this.countryCode = settings.cc ?? '');
 		streamDeck.settings.onDidReceiveGlobalSettings<GlobalSettings>((ev) => {
-			this.countryCode = ev.settings.cc ?? '';
-			for (const ctx of this.currentContexts) {
-				if (!this.updatesCache.has(ctx)) return;
-				this.update(ctx, this.updatesCache.get(ctx)!.appId, true);
-			}
+			this.countryCode = ev.settings.cc ?? 'auto';
+			this.updateAll(true);
 		})
 	}
 
@@ -64,15 +61,26 @@ export class PriceTracker extends IAction<ActionSettings> {
 	}
 
 	isUpToDate(context: string): boolean {
-		if (this.updatesCache.has(context) && ((Date.now() - this.updatesCache.get(context)!.timestamp) < 60 * 60 * 1000)) {
+		// if (this.updatesCache.has(context) && ((Date.now() - this.updatesCache.get(context)!.timestamp) < 60 * 60 * 1000)) {
+		// 	console.log('Not updating, recent update available')
+		// 	return true;
+		// }
+		if (this.updatedContexts.has(context) && ((Date.now() - this.updatedContexts.get(context)!) < 60 * 60 * 1000)) {
 			console.log('Not updating, recent update available')
 			return true;
 		}
 		return false;
 	}
 
+	// to-do: do I really need the force param? it seems to be always used
+	updateAll(force = false) {
+		for (const [ctx, appId] of this.visibleContexts) {
+			this.update(ctx, appId, force);
+		}
+	}
+
 	async update(context: string, appId: string | undefined, force = false) {
-		if (!appId) return;
+		if (!this.countryCode || !appId) return;
 		if (!force && this.isUpToDate(context)) return;
 		const controller = streamDeck.actions.createController(context);
 
@@ -81,7 +89,8 @@ export class PriceTracker extends IAction<ActionSettings> {
 			const image = await this.generateImg(capsule_image, price_overview?.final_formatted, price_overview?.discount_percent);
 			controller.setImage('data:image/png;base64,' + image.toString('base64'), { target: 0 })
 			console.log('Updated', name, price_overview?.final_formatted)
-			this.updatesCache.set(context, { appId, timestamp: Date.now() })
+			// this.updatesCache.set(context, { appId, timestamp: Date.now() })
+			this.updatedContexts.set(context, Date.now());
 		}
 		catch (e) {
 			console.log('Error updating', e)
@@ -89,13 +98,15 @@ export class PriceTracker extends IAction<ActionSettings> {
 	}
 
 	onWillAppear(ev: WillAppearEvent<ActionSettings>): Promise<void> | void {
-		this.currentContexts.add(ev.action.id);
+		// this.currentContexts.add(ev.action.id);
 		const { appId } = ev.payload.settings;
+		this.visibleContexts.set(ev.action.id, appId ?? '');
 		this.update(ev.action.id, appId);
 	}
 
 	onWillDisappear(ev: WillDisappearEvent<ActionSettings>): Promise<void> | void {
-		this.currentContexts.delete(ev.action.id);
+		// this.currentContexts.delete(ev.action.id);
+		this.visibleContexts.delete(ev.action.id);
 	}
 
 	onDidReceiveSettings(ev: DidReceiveSettingsEvent<ActionSettings>): Promise<void> | void {
@@ -110,10 +121,7 @@ export class PriceTracker extends IAction<ActionSettings> {
 	protected onLongPress(ev: KeyDownEvent<ActionSettings>): void | Promise<void> {
 		ev.action.showOk();
 		console.log('forcing update here')
-		for (const ctx of this.currentContexts) {
-			if (!this.updatesCache.has(ctx)) return;
-			this.update(ctx, this.updatesCache.get(ctx)!.appId, true);
-		}
+		this.updateAll(true);
 	}
 
 	async fetchAppStoreInfo(appId: string): Promise<SteamApiData> {

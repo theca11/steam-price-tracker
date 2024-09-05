@@ -9,7 +9,7 @@ const selectField = document.querySelector('#cc-select') as HTMLSelectElement;
 streamDeck.onDidConnect(async (_, actionInfo) => {
 	inputField.value = (actionInfo.payload.settings as ActionSettings).name ?? '';
 	const { cc } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-	selectField.value = cc ?? '';
+	selectField.value = cc ?? 'auto';
 });
 
 // Save settings
