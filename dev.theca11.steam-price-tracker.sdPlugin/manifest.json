@@ -8,10 +8,7 @@
 			"UUID": "dev.theca11.steam-price-tracker.tracker",
 			"Icon": "imgs/actions/tracker/icon",
 			"Tooltip": "Displays the current price of a Steam app",
-			"PropertyInspectorPath": "ui/tracker.html",
-			"Controllers": [
-				"Keypad"
-			],
+			"Controllers": ["Keypad"],
 			"States": [
 				{
 					"Image": "imgs/actions/tracker/key"
@@ -23,6 +20,8 @@
 	"Category": "Steam Price Tracker",
 	"CategoryIcon": "imgs/plugin/category-icon",
 	"CodePath": "bin/plugin.js",
+	"PropertyInspectorPath": "ui/pi.html",
+	"DefaultWindowSize": [500, 510],
 	"Description": "Displays the current price of a Steam app",
 	"Icon": "imgs/plugin/marketplace",
 	"SDKVersion": 2,

@@ -1,7 +1,7 @@
-import { KeyDownEvent, KeyUpEvent, PayloadObject, SingletonAction } from "@elgato/streamdeck";
+import { JsonObject, KeyDownEvent, KeyUpEvent, SingletonAction } from "@elgato/streamdeck";
 
 
-export abstract class IAction<T extends PayloadObject<T>> extends SingletonAction<T> {
+export abstract class IAction<T extends JsonObject> extends SingletonAction<T> {
 	private _pressCache = new Map<string, NodeJS.Timeout>(); // <context, timeoutRef>
 
 	protected onSinglePress?(ev: KeyUpEvent<T>): void | Promise<void>;

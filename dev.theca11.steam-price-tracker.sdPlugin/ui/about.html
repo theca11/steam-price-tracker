@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+	<head lang="en">
+		<title>Steam Price Tracker - About</title>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="./css/sdpi.css" />
+		<style>
+			p {
+				font-size: 10pt;
+				color: #d3d3d3;
+			}
+
+			.header {
+				background-color: #334967;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 6px 15px;
+				user-select: none;
+			}
+
+			.text {
+				color: #efefef;
+				font-size: 11pt;
+				font-weight: 700;
+				text-shadow: 0px 0px 4px #00000080;
+			}
+
+			.links {
+				display: flex;
+				justify-content: center;
+			}
+
+			.links img {
+				height: 20px;
+				filter: invert(0.96) drop-shadow(0px 0px 3px #00000080);
+				pointer-events: none;
+			}
+
+			.links button {
+				border: none;
+				background-color: transparent;
+				padding: 2px;
+				margin: 0 2px 0 0;
+			}
+
+			.links button:hover {
+				opacity: 0.9;
+			}
+
+			section {
+				margin: 10px;
+				padding: 5px;
+			}
+
+			section .title {
+				font-size: 10pt;
+				font-weight: bold;
+				color: #efefef;
+				border-left: 3px solid #efefef;
+				padding-left: 6px;
+			}
+
+			.troubleshoot .q {
+				margin-top: 16px;
+				margin-bottom: 0px;
+				font-weight: 600;
+			}
+
+			.troubleshoot .a {
+				margin-top: 8px;
+			}
+
+			.troubleshoot .q::before {
+				content: '▸ ';
+			}
+		</style>
+	</head>
+	<body>
+		<div class="header">
+			<div class="text">Steam Price Tracker</div>
+			<div class="links">
+				<!-- <button data-url="https://theca11.github.io/multi-obs-controller" title="Website">
+					<img src="../imgs/icons/world-www.svg" alt="Website" />
+				</button> -->
+				<button data-url="https://discord.gg/yFce5NEDak" title="Discord">
+					<img src="../imgs/icons/brand-discord-filled.svg" alt="Discord" />
+				</button>
+				<button data-url="https://ko-fi.com/the_ca11" title="Support on Ko-Fi">
+					<img src="../imgs/icons/kofi-logo.svg" alt="Ko-Fi" />
+				</button>
+			</div>
+		</div>
+		<section class="about">
+			<div class="title">About</div>
+			<p>
+				Steam Price Tracker plugin displays the current price of any Steam app.
+				<br />
+				Keep track of discounts and don't miss out on a bargain!
+			</p>
+			<p>
+				▸ Automatically updates info <b>every hour</b>.<br />
+				▸ <b>Press</b> key to go to the Steam Store app page.<br />
+				▸ <b>Long press</b> key to force an update of all visible apps.
+			</p>
+		</section>
+		<section class="troubleshoot">
+			<div class="title">Troubleshooting</div>
+			<p class="q">The plugin can't find an app.</p>
+			<p class="a">
+				Make sure you're writing the name of the app as it appears on the Steam Store.
+				Partial matches will fail. If it still doesn't find it, use the app ID number
+				instead of the name - it's part of the store page URL:
+			</p>
+			<img src="./assets/steam_id.png" />
+			<p class="q">The displayed price is incorrect and/or is in the wrong currency.</p>
+			<p class="a">
+				By default prices are shown based on the store region detected by Steam. If this
+				detection is wrong or you want to display prices of a different region, change the
+				<b>Store Country</b> setting. This setting is shared among all keys, you only need
+				to configure it once.
+			</p>
+		</section>
+		<script>
+			document.querySelectorAll('.links button').forEach((el) => {
+				el.addEventListener('click', (e) => {
+					e.preventDefault();
+					window.opener.openUrl(e.target.dataset.url);
+				});
+			});
+		</script>
+	</body>
+</html>

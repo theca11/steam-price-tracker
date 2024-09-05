@@ -18,8 +18,9 @@
 		"typescript": "^5.2.2"
 	},
 	"dependencies": {
-		"@elgato/streamdeck": "^0.3.0",
+		"@elgato/streamdeck": "^0.4.0-beta.5",
 		"croner": "^8.1.1",
+		"debounce": "^2.1.0",
 		"sharp": "^0.33.5"
 	}
 }

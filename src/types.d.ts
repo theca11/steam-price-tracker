@@ -2,8 +2,13 @@
  * Settings for {@link PriceTracker}.
  */
 export type ActionSettings = {
+	name?: string;
 	appId?: string;
 };
+
+export type GlobalSettings = {
+	cc?: string;
+}
 
 export type SteamApiResponse = {
 	[appId: string]: {
@@ -21,3 +26,14 @@ export type SteamApiData = {
 		discount_percent: number,
 	}
 };
+
+export type SteamApiAppsResponse = {
+	applist: {
+		apps: AppInfo[]
+	}
+}
+
+export type AppInfo = {
+	name: string,
+	appid: string
+}

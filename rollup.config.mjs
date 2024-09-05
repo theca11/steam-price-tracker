@@ -12,8 +12,8 @@ const sdPlugin = 'dev.theca11.steam-price-tracker.sdPlugin';
 /**
  * @type {import('rollup').RollupOptions}
  */
-const config = {
-	input: 'src/plugin.ts',
+const pluginConfig = {
+	input: 'src/plugin/plugin.ts',
 	output: {
 		file: `${sdPlugin}/bin/plugin.js`,
 		sourcemap: isWatching,
@@ -21,7 +21,6 @@ const config = {
 			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath))
 				.href;
 		},
-		inlineDynamicImports: true,
 	},
 	external: ['sharp'],
 	plugins: [
@@ -32,6 +31,7 @@ const config = {
 			},
 		},
 		typescript({
+			tsconfig: 'src/plugin/tsconfig.json',
 			mapRoot: isWatching ? './' : undefined,
 		}),
 		json(),
@@ -55,4 +55,35 @@ const config = {
 	],
 };
 
-export default config;
+const piConfig = {
+	input: 'src/pi/pi.ts',
+	output: {
+		file: `${sdPlugin}/bin/pi.js`,
+		sourcemap: isWatching,
+		sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
+			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath))
+				.href;
+		},
+	},
+	plugins: [
+		{
+			name: 'watch-externals',
+			buildStart: function () {
+				this.addWatchFile(`${sdPlugin}/manifest.json`);
+			},
+		},
+		typescript({
+			tsconfig: 'src/pi/tsconfig.json',
+			mapRoot: isWatching ? './' : undefined,
+		}),
+		json(),
+		nodeResolve({
+			browser: true,
+			preferBuiltins: true,
+		}),
+		commonjs(),
+		!isWatching && terser(),
+	],
+};
+
+export default [pluginConfig, piConfig];

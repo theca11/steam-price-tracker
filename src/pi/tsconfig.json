@@ -1,0 +1,10 @@
+{
+	"extends": "@tsconfig/node20/tsconfig.json",
+	"compilerOptions": {
+		"customConditions": ["browser"],
+		"module": "ES2022",
+		"moduleResolution": "Bundler",
+		"lib": ["DOM", "ES2022"]
+	},
+	"include": ["./**/*.ts"],
+}
