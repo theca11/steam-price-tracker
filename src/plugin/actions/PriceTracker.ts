@@ -58,7 +58,12 @@ export class PriceTracker extends IAction<ActionSettings> {
 			this.update(req.action.id, app.appid, true);
 			return true;
 		}
-		else { console.log('app NOT found', req.body); return false; }
+		else {
+			console.log('app NOT found', req.body);
+			req.action.setSettings({ name: '', appId: '' });
+			streamDeck.actions.createController(req.action.id).setImage();
+			return false;
+		}
 	}
 
 	isUpToDate(context: string): boolean {
