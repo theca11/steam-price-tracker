@@ -49,15 +49,16 @@ export class PriceTracker extends IAction<ActionSettings> {
 	}
 
 	@route("/search")
-	public search(req: MessageRequest<string>, res: MessageResponder): void {
+	public search(req: MessageRequest<string>, res: MessageResponder): boolean {
 		console.log('hit route')
 		const app = this.steamApps.find(app => app.name.toLowerCase().trim() === req.body?.toLowerCase().trim() || app.appid.toString() === req.body?.trim())
 		if (app) {
 			console.log('app found', app)
 			req.action.setSettings({ name: app.name, appId: app.appid });
-			this.update(req.action.id, app.appid, true)
+			this.update(req.action.id, app.appid, true);
+			return true;
 		}
-		else { console.log('app NOT found', req.body) }
+		else { console.log('app NOT found', req.body); return false; }
 	}
 
 	isUpToDate(context: string): boolean {

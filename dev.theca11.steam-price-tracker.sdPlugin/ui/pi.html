@@ -4,7 +4,21 @@
 		<title>Steam Price Tracker - Property Inspector</title>
 		<meta charset="utf-8" />
 		<link rel="stylesheet" href="./css/sdpi.css" />
+		<link rel="stylesheet" href="./css/custom.css" />
 		<style>
+			#input {
+				margin-right: 33px;
+			}
+
+			.indicator {
+				position: absolute;
+				right: 4px;
+				top: 4px;
+				width: 20px;
+				height: 20px;
+				margin-bottom: 2px;
+			}
+
 			.about {
 				text-align: right;
 				font-weight: normal;
@@ -25,6 +39,7 @@
 					value=""
 					placeholder="Enter Steam App Name or ID"
 				/>
+				<img class="indicator" src="./assets/error.svg" />
 			</div>
 			<div class="sdpi-item">
 				<div class="sdpi-item-label">Store Country</div>

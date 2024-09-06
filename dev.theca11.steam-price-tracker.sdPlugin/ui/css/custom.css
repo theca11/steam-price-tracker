@@ -1,0 +1,17 @@
+/** Custom fixes */
+.sdpi-item {
+	max-width: none;
+}
+
+.sdpi-item-label, select, select option, .sdpi-item-value.select {
+	font-weight: normal;
+}
+
+input:not([type="range"]), textarea, select, select option, .sdpi-item-value.select {
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+	font-size: 9pt;
+}
+
+.sdpi-item-value.select {
+	margin-right: 33px;
+}
