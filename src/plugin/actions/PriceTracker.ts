@@ -42,35 +42,31 @@ export class PriceTracker extends IAction<ActionSettings> {
 		const req = await fetch('https://api.steampowered.com/ISteamApps/GetAppList/v2/')
 		const json = (await req.json()) as SteamApiAppsResponse;
 		console.time('fetch')
-		this.steamApps = json.applist.apps.filter(app => app.name);
+		this.steamApps = json.applist.apps.filter(app => app.name && app.appid);
 		console.timeEnd('fetch')
 		console.log(this.steamApps.length)
 		this.appListLastUpdated = Date.now()
 	}
 
 	@route("/search")
-	public search(req: MessageRequest<string>, res: MessageResponder): boolean {
+	public async search(req: MessageRequest<string>, res: MessageResponder): Promise<boolean> {
 		console.log('hit route')
-		const app = this.steamApps.find(app => app.name.toLowerCase().trim() === req.body?.toLowerCase().trim() || app.appid.toString() === req.body?.trim())
+		const input = req.body?.toLowerCase().trim();
+		const app = this.steamApps.find(app => app.name.toLowerCase().trim() === input || app.appid.toString() === input)
+
 		if (app) {
 			console.log('app found', app)
 			req.action.setSettings({ name: app.name, appId: app.appid });
-			this.update(req.action.id, app.appid, true);
-			return true;
+			const success = await this.update(req.action.id, app.appid, true);
+			if (success) return true;
 		}
-		else {
-			console.log('app NOT found', req.body);
-			req.action.setSettings({ name: '', appId: '' });
-			streamDeck.actions.createController(req.action.id).setImage();
-			return false;
-		}
+		console.log('app NOT found', req.body);
+		req.action.setSettings({ name: '', appId: '' });
+		req.action.setImage();
+		return false;
 	}
 
 	isUpToDate(context: string): boolean {
-		// if (this.updatesCache.has(context) && ((Date.now() - this.updatesCache.get(context)!.timestamp) < 60 * 60 * 1000)) {
-		// 	console.log('Not updating, recent update available')
-		// 	return true;
-		// }
 		if (this.updatedContexts.has(context) && ((Date.now() - this.updatedContexts.get(context)!) < 60 * 60 * 1000)) {
 			console.log('Not updating, recent update available')
 			return true;
@@ -85,33 +81,37 @@ export class PriceTracker extends IAction<ActionSettings> {
 		}
 	}
 
-	async update(context: string, appId: string | undefined, force = false) {
-		if (!this.countryCode || !appId) return;
-		if (!force && this.isUpToDate(context)) return;
-		const controller = streamDeck.actions.createController(context);
+	async update(context: string, appId: string | undefined, force = false): Promise<boolean> {
+		if (!this.countryCode || !appId) return false;
+		if (!force && this.isUpToDate(context)) return false;
 
 		try {
-			const { name, capsule_image, price_overview } = await this.fetchAppStoreInfo(appId);
+			const info = await this.fetchAppStoreInfo(appId);
+			if (!info) {
+				//to-do: log here that the app could not be found in the API
+				return false;
+			};
+			const { name, capsule_image, price_overview } = info;
 			const image = await this.generateImg(capsule_image, price_overview?.final_formatted, price_overview?.discount_percent);
+			const controller = streamDeck.actions.createController(context);
 			controller.setImage('data:image/png;base64,' + image.toString('base64'), { target: 0 })
 			console.log('Updated', name, price_overview?.final_formatted)
-			// this.updatesCache.set(context, { appId, timestamp: Date.now() })
 			this.updatedContexts.set(context, Date.now());
+			return true;
 		}
 		catch (e) {
 			console.log('Error updating', e)
+			return false;
 		}
 	}
 
 	onWillAppear(ev: WillAppearEvent<ActionSettings>): Promise<void> | void {
-		// this.currentContexts.add(ev.action.id);
 		const { appId } = ev.payload.settings;
 		this.visibleContexts.set(ev.action.id, appId ?? '');
 		this.update(ev.action.id, appId);
 	}
 
 	onWillDisappear(ev: WillDisappearEvent<ActionSettings>): Promise<void> | void {
-		// this.currentContexts.delete(ev.action.id);
 		this.visibleContexts.delete(ev.action.id);
 	}
 
@@ -132,15 +132,15 @@ export class PriceTracker extends IAction<ActionSettings> {
 		this.updateAll(true);
 	}
 
-	async fetchAppStoreInfo(appId: string): Promise<SteamApiData> {
+	async fetchAppStoreInfo(appId: string): Promise<SteamApiData | null> {
 		try {
 			const req = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}&filters=basic,price_overview&cc=${this.countryCode}`)
 			const res = await req.json() as SteamApiResponse;
-			return res[appId].data;
+			return res[appId].success ? res[appId].data : null;
 		}
 		catch (e) {
 			console.log('Error fetching api', e);
-			throw e;
+			throw e; //to-do: throw or simply return null?
 		}
 
 	}

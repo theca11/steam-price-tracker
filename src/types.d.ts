@@ -12,7 +12,9 @@ export type GlobalSettings = {
 
 export type SteamApiResponse = {
 	[appId: string]: {
-		success: boolean,
+		success: false
+	} | {
+		success: true,
 		data: SteamApiData
 	}
 }
