@@ -6,19 +6,19 @@
 		{
 			"Name": "Price Tracker",
 			"UUID": "dev.theca11.steam-price-tracker.tracker",
-			"Icon": "imgs/actions/tracker/icon",
+			"Icon": "imgs/icon",
 			"Tooltip": "Displays the current price of a Steam app",
 			"Controllers": ["Keypad"],
 			"States": [
 				{
-					"Image": "imgs/actions/tracker/key"
+					"Image": "imgs/key"
 				}
 			],
 			"UserTitleEnabled": false
 		}
 	],
 	"Category": "Steam Price Tracker",
-	"CategoryIcon": "imgs/plugin/category-icon",
+	"CategoryIcon": "imgs/icon",
 	"CodePath": "bin/plugin.js",
 	"PropertyInspectorPath": "ui/pi.html",
 	"DefaultWindowSize": [500, 510],
