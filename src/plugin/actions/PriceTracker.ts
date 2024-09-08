@@ -121,7 +121,9 @@ export class PriceTracker extends IAction<ActionSettings> {
 	}
 
 	protected onSinglePress(ev: KeyUpEvent<ActionSettings>): void | Promise<void> {
-		streamDeck.system.openUrl(`https://store.steampowered.com/app/${ev.payload.settings.appId}`)
+		const appId = ev.payload.settings.appId;
+		if (!appId) return;
+		streamDeck.system.openUrl(`https://store.steampowered.com/app/${appId}`)
 	}
 
 	protected onLongPress(ev: KeyDownEvent<ActionSettings>): void | Promise<void> {
