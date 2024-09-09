@@ -20,10 +20,10 @@
 	"Category": "Steam Price Tracker",
 	"CategoryIcon": "imgs/icon",
 	"CodePath": "bin/plugin.js",
-	"PropertyInspectorPath": "ui/pi.html",
+	"PropertyInspectorPath": "pi/pi.html",
 	"DefaultWindowSize": [500, 510],
 	"Description": "Displays the current price of a Steam app",
-	"Icon": "imgs/plugin/marketplace",
+	"Icon": "imgs/logo",
 	"SDKVersion": 2,
 	"Software": {
 		"MinimumVersion": "6.5"

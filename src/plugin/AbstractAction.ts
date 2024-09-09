@@ -1,7 +1,7 @@
 import { JsonObject, KeyDownEvent, KeyUpEvent, SingletonAction } from "@elgato/streamdeck";
 
 
-export abstract class IAction<T extends JsonObject> extends SingletonAction<T> {
+export abstract class AbstractAction<T extends JsonObject> extends SingletonAction<T> {
 	private _pressCache = new Map<string, NodeJS.Timeout>(); // <context, timeoutRef>
 
 	protected onSinglePress?(ev: KeyUpEvent<T>): void | Promise<void>;
@@ -21,15 +21,10 @@ export abstract class IAction<T extends JsonObject> extends SingletonAction<T> {
 
 	override onKeyUp(evtData: KeyUpEvent<T>) {
 		const context = evtData.action.id;
-		// Check if long press
-		if (!this._pressCache.has(context)) { // it was long press, already processed
-			return;
-		}
-		else {
-			clearTimeout(this._pressCache.get(context));
-			this._pressCache.delete(context);
-			this.onSinglePress && this.onSinglePress(evtData);
-		}
+		if (!this._pressCache.has(context)) return;
+		clearTimeout(this._pressCache.get(context));
+		this._pressCache.delete(context);
+		this.onSinglePress && this.onSinglePress(evtData);
 	}
 }
 
