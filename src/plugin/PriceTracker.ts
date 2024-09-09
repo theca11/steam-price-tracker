@@ -1,0 +1,205 @@
+import streamDeck, { action, KeyDownEvent, KeyUpEvent, MessageRequest, MessageResponder, PropertyInspectorDidAppearEvent, route, WillAppearEvent, WillDisappearEvent } from '@elgato/streamdeck';
+import Cron from 'croner';
+import sharp from 'sharp';
+import { ActionSettings, AppInfo, AppsListResponse, GlobalSettings, StoreAppInfo, StoreResponse } from '../types';
+import { AbstractAction } from './AbstractAction';
+
+
+@action({ UUID: 'dev.theca11.steam-price-tracker.tracker' })
+export class PriceTracker extends AbstractAction<ActionSettings> {
+	visibleContexts = new Map<string, string>();  // <context, appId>
+	updatedContexts = new Map<string, number>();  // <context, timestamp>
+	appsList: AppInfo[] = [];
+	appListLastUpdated = 0;
+	countryCode: string | null = null;
+
+	constructor() {
+		super();
+		streamDeck.settings.onDidReceiveGlobalSettings<GlobalSettings>((ev) => {
+			this.countryCode = ev.settings.cc ?? 'auto';
+			streamDeck.logger.debug(`Country code set to ${this.countryCode}`);
+			this.updateVisible();
+		});
+		Cron('0 * * * *', () => {
+			streamDeck.logger.debug('Performing scheduled update');
+			this.updateVisible();
+		});
+	}
+
+	onWillAppear(ev: WillAppearEvent<ActionSettings>): Promise<void> | void {
+		const { id } = ev.action;
+		const { appId } = ev.payload.settings;
+		this.visibleContexts.set(id, appId ?? '');
+		this.update(id, appId);
+	}
+
+	onWillDisappear(ev: WillDisappearEvent<ActionSettings>): Promise<void> | void {
+		const { id } = ev.action;
+		this.visibleContexts.delete(id);
+	}
+
+	onSinglePress(ev: KeyUpEvent<ActionSettings>): void | Promise<void> {
+		const { appId } = ev.payload.settings;
+		if (!appId) return;
+		streamDeck.system.openUrl(`https://store.steampowered.com/app/${appId}`);
+	}
+
+	onLongPress(ev: KeyDownEvent<ActionSettings>): void | Promise<void> {
+		streamDeck.logger.debug('Performing forced update');
+		ev.action.showOk();
+		this.updateVisible();
+	}
+
+	onPropertyInspectorDidAppear(ev: PropertyInspectorDidAppearEvent<ActionSettings>): Promise<void> | void {
+		this.fetchAppList();
+	}
+
+	@route('/search')
+	async search(req: MessageRequest<string>, res: MessageResponder): Promise<boolean> {
+		const { action } = req;
+		const { id } = action;
+		const input = req.body?.toLowerCase().trim();
+		const app = this.appsList.find(app => app.name.toLowerCase().trim() === input || app.appid.toString() === input);
+		if (app) {
+			streamDeck.logger.debug(`Search found app for ${input}`, app);
+			action.setSettings({ name: app.name, appId: app.appid });
+			this.visibleContexts.set(id, app.appid);
+			const success = await this.update(id, app.appid, true);
+			if (success) return true;
+		}
+		streamDeck.logger.debug(`Search did NOT found app for ${input} or issue updating`);
+		action.setSettings({ name: '', appId: '' });
+		this.visibleContexts.set(id, '');
+		action.setImage();
+		return false;
+	}
+
+	async fetchAppList() {
+		if (Date.now() - this.appListLastUpdated < 15 * 60 * 1000) return;
+		try {
+			const req = await fetch('https://api.steampowered.com/ISteamApps/GetAppList/v2/');
+			const json = await req.json() as AppsListResponse;
+			this.appsList = json.applist.apps.filter(app => app.name && app.appid);
+			this.appListLastUpdated = Date.now();
+		}
+		catch (e) {
+			streamDeck.logger.error('Error fetching apps list', e);
+		}
+	}
+
+	async fetchStoreAppInfo(appId: string): Promise<StoreAppInfo | null> {
+		try {
+			const req = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}&filters=basic,price_overview&cc=${this.countryCode}`);
+			const res = await req.json() as StoreResponse;
+			return res[appId].success ? res[appId].data : null;
+		}
+		catch (e) {
+			streamDeck.logger.error('Error fetching store app info', e);
+			return null;
+		}
+	}
+
+	isUpToDate(context: string): boolean {
+		if (this.updatedContexts.has(context) && ((Date.now() - this.updatedContexts.get(context)!) < 60 * 60 * 1000)) {
+			streamDeck.logger.debug('Not updating context, recent info available');
+			return true;
+		}
+		return false;
+	}
+
+	updateVisible() {
+		for (const [ctx, appId] of this.visibleContexts) {
+			this.update(ctx, appId, true);
+		}
+	}
+
+	async update(context: string, appId: string | undefined, force = false): Promise<boolean> {
+		if (!this.countryCode || !appId) return false;
+		if (!force && this.isUpToDate(context)) return false;
+
+		const info = await this.fetchStoreAppInfo(appId);
+		if (!info) return false;
+		const { name, capsule_image, price_overview } = info;
+
+		try {
+			const image = await this.generateImg(capsule_image, price_overview?.final_formatted, price_overview?.discount_percent);
+			const controller = streamDeck.actions.createController(context);
+			controller.setImage('data:image/png;base64,' + image.toString('base64'), { target: 0 });
+			this.updatedContexts.set(context, Date.now());
+			streamDeck.logger.debug(`Updated ${name} - ${price_overview?.final_formatted}`);
+			return true;
+		}
+		catch (e) {
+			streamDeck.logger.error('Error while generating image on update', e);
+			return false;
+		}
+	}
+
+	async generateImg(artworkUrl: string, finalPrice: string = 'Free', discountPercent: number = 0) {
+		const req = await fetch(artworkUrl);
+		const artworkBuffer = await req.arrayBuffer();
+		const artworkBase = await sharp(artworkBuffer)
+			.resize(144, null, {
+				kernel: sharp.kernel.nearest,
+				fit: 'contain',
+				position: 'center',
+			})
+			.extend({ top: 1, bottom: 1, background: 'black' })
+			.png()
+			.toBuffer();
+
+		const artwork = await sharp(artworkBase)
+			.extend({ bottom: 29, background: 'transparent' })
+			.toBuffer();
+
+		const bg = sharp(Buffer.from(`
+			<svg width="144" height="144" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<rect width="144" height="144" fill="url(#gradient-fill)"/>
+				<defs>
+					<linearGradient id="gradient-fill" x1="100" y1="144" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+							<stop offset="0" stop-color="#16202d" />
+							<stop offset="0.35" stop-color="#25354b" />
+							<stop offset="1" stop-color="#5f8ebb" />
+					</linearGradient>
+				</defs>
+			</svg>`
+		))
+
+		const discountText = await sharp({
+			text: {
+				text: `<span font="Arial" weight="bold" font_style="italic" fgcolor="#beee11" bgcolor="#4c6b22">- ${discountPercent}%</span>`,
+				width: 120,
+				height: 19,
+				align: 'center',
+				rgba: true,
+			},
+		})
+			.extend({ top: 8, bottom: 8, left: 8, right: 8, background: '#4c6b22' })
+			.png()
+			.toBuffer();
+
+		const priceText = await sharp({
+			text: {
+				text: `<span font="Arial" weight="bold" fgcolor="${discountPercent ? '#beee11' : 'white'}" bgcolor="white" bgalpha="1">${finalPrice}</span>`,
+				width: 130,
+				dpi: 160,
+				align: 'center',
+				rgba: true,
+			},
+		})
+			.extend({ bottom: 15, background: 'transparent' })
+			.png()
+			.toBuffer();
+
+		const compositeInputs = [
+			{ input: artwork, gravity: 'center' },
+			{ input: priceText, gravity: 'south' }
+		];
+		if (discountPercent) {
+			compositeInputs.push({ input: discountText, gravity: 'northeast' })
+		}
+
+		const image = await bg.composite(compositeInputs).png().toBuffer();
+		return image;
+	}
+}

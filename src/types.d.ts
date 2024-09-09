@@ -1,35 +1,15 @@
-/**
- * Settings for {@link PriceTracker}.
- */
+// -- Plugin settings
+export type GlobalSettings = {
+	cc?: string;
+}
+
 export type ActionSettings = {
 	name?: string;
 	appId?: string;
 };
 
-export type GlobalSettings = {
-	cc?: string;
-}
-
-export type SteamApiResponse = {
-	[appId: string]: {
-		success: false
-	} | {
-		success: true,
-		data: SteamApiData
-	}
-}
-
-export type SteamApiData = {
-	name: string,
-	steam_appid: number,
-	capsule_image: string,
-	price_overview?: {
-		final_formatted: string
-		discount_percent: number,
-	}
-};
-
-export type SteamApiAppsResponse = {
+//  -- Steam Apps List API
+export type AppsListResponse = {
 	applist: {
 		apps: AppInfo[]
 	}
@@ -39,3 +19,23 @@ export type AppInfo = {
 	name: string,
 	appid: string
 }
+
+// -- Steam Store API
+export type StoreResponse = {
+	[appId: string]: {
+		success: false
+	} | {
+		success: true,
+		data: StoreAppInfo
+	}
+}
+
+export type StoreAppInfo = {
+	name: string,
+	steam_appid: number,
+	capsule_image: string,
+	price_overview?: {
+		final_formatted: string
+		discount_percent: number,
+	}
+};
