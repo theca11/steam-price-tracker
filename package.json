@@ -1,7 +1,10 @@
 {
 	"scripts": {
 		"build": "rollup -c",
-		"watch": "rollup -c -w --watch.onEnd=\"streamdeck restart dev.theca11.steam-price-tracker\""
+		"watch": "rollup -c -w --watch.onEnd=\"streamdeck restart dev.theca11.steam-price-tracker\"",
+		"pack": "streamdeck pack -f -o ./dist ./build/dev.theca11.steam-price-tracker.sdPlugin",
+		"lint": "eslint .",
+		"lint-fix": "eslint --fix ."
 	},
 	"type": "module",
 	"devDependencies": {
@@ -13,6 +16,11 @@
 		"@rollup/plugin-typescript": "^11.1.5",
 		"@tsconfig/node20": "^20.1.2",
 		"@types/node": "20.8.10",
+		"@typescript-eslint/eslint-plugin": "^8.4.0",
+		"@typescript-eslint/parser": "^8.4.0",
+		"eslint": "^8.57.0",
+		"eslint-plugin-import": "^2.30.0",
+		"eslint-plugin-promise": "^7.1.0",
 		"rollup": "^4.0.2",
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2"

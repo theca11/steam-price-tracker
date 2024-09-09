@@ -1,5 +1,5 @@
 import streamDeck from '@elgato/streamdeck';
-import debounce from "debounce";
+import debounce from 'debounce';
 import { GlobalSettings, type ActionSettings } from '../types';
 
 const inputField = document.querySelector('#input') as HTMLInputElement;
@@ -34,6 +34,6 @@ selectField?.addEventListener('change', (ev) => {
 });
 
 // Open about window
-(document.querySelector('.about > div') as HTMLElement)?.addEventListener('click', (ev) => {
+(document.querySelector('.about > div') as HTMLElement)?.addEventListener('click', () => {
 	window.open('./about.html');
 });

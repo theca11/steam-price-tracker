@@ -1,4 +1,4 @@
-import { JsonObject, KeyDownEvent, KeyUpEvent, SingletonAction } from "@elgato/streamdeck";
+import { JsonObject, KeyDownEvent, KeyUpEvent, SingletonAction } from '@elgato/streamdeck';
 
 
 export abstract class AbstractAction<T extends JsonObject> extends SingletonAction<T> {
@@ -14,7 +14,7 @@ export abstract class AbstractAction<T extends JsonObject> extends SingletonActi
 
 		const timeout = setTimeout(() => {
 			this._pressCache.delete(context);
-			this.onLongPress && this.onLongPress(evtData);
+			if (this.onLongPress) this.onLongPress(evtData);
 		}, 500);
 		this._pressCache.set(context, timeout);
 	}
@@ -24,7 +24,7 @@ export abstract class AbstractAction<T extends JsonObject> extends SingletonActi
 		if (!this._pressCache.has(context)) return;
 		clearTimeout(this._pressCache.get(context));
 		this._pressCache.delete(context);
-		this.onSinglePress && this.onSinglePress(evtData);
+		if (this.onSinglePress) this.onSinglePress(evtData);
 	}
 }
 

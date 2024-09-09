@@ -1,4 +1,4 @@
-import streamDeck, { action, KeyDownEvent, KeyUpEvent, MessageRequest, MessageResponder, PropertyInspectorDidAppearEvent, route, WillAppearEvent, WillDisappearEvent } from '@elgato/streamdeck';
+import streamDeck, { action, KeyDownEvent, KeyUpEvent, MessageRequest, route, WillAppearEvent, WillDisappearEvent } from '@elgato/streamdeck';
 import Cron from 'croner';
 import sharp from 'sharp';
 import { ActionSettings, AppInfo, AppsListResponse, GlobalSettings, StoreAppInfo, StoreResponse } from '../types';
@@ -7,8 +7,8 @@ import { AbstractAction } from './AbstractAction';
 
 @action({ UUID: 'dev.theca11.steam-price-tracker.tracker' })
 export class PriceTracker extends AbstractAction<ActionSettings> {
-	visibleContexts = new Map<string, string>();  // <context, appId>
-	updatedContexts = new Map<string, number>();  // <context, timestamp>
+	visibleContexts = new Map<string, string>(); // <context, appId>
+	updatedContexts = new Map<string, number>(); // <context, timestamp>
 	appsList: AppInfo[] = [];
 	appListLastUpdated = 0;
 	countryCode: string | null = null;
@@ -50,27 +50,27 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		this.updateVisible();
 	}
 
-	onPropertyInspectorDidAppear(ev: PropertyInspectorDidAppearEvent<ActionSettings>): Promise<void> | void {
+	onPropertyInspectorDidAppear(): Promise<void> | void {
 		this.fetchAppList();
 	}
 
 	@route('/search')
-	async search(req: MessageRequest<string>, res: MessageResponder): Promise<boolean> {
-		const { action } = req;
-		const { id } = action;
+	async search(req: MessageRequest<string>): Promise<boolean> {
+		const controller = req.action;
+		const { id } = controller;
 		const input = req.body?.toLowerCase().trim();
-		const app = this.appsList.find(app => app.name.toLowerCase().trim() === input || app.appid.toString() === input);
-		if (app) {
-			streamDeck.logger.debug(`Search found app for ${input}`, app);
-			action.setSettings({ name: app.name, appId: app.appid });
-			this.visibleContexts.set(id, app.appid);
-			const success = await this.update(id, app.appid, true);
+		const foundApp = this.appsList.find(app => app.name.toLowerCase().trim() === input || app.appid.toString() === input);
+		if (foundApp) {
+			streamDeck.logger.debug(`Search found app for ${input}`, foundApp);
+			controller.setSettings({ name: foundApp.name, appId: foundApp.appid });
+			this.visibleContexts.set(id, foundApp.appid);
+			const success = await this.update(id, foundApp.appid, true);
 			if (success) return true;
 		}
 		streamDeck.logger.debug(`Search did NOT found app for ${input} or issue updating`);
-		action.setSettings({ name: '', appId: '' });
+		controller.setSettings({ name: '', appId: '' });
 		this.visibleContexts.set(id, '');
-		action.setImage();
+		controller.setImage();
 		return false;
 	}
 
@@ -139,18 +139,18 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		const req = await fetch(artworkUrl);
 		const artworkBuffer = await req.arrayBuffer();
 		const artworkBase = await sharp(artworkBuffer)
-			.resize(144, null, {
-				kernel: sharp.kernel.nearest,
-				fit: 'contain',
-				position: 'center',
-			})
-			.extend({ top: 1, bottom: 1, background: 'black' })
-			.png()
-			.toBuffer();
+		.resize(144, null, {
+			kernel: sharp.kernel.nearest,
+			fit: 'contain',
+			position: 'center',
+		})
+		.extend({ top: 1, bottom: 1, background: 'black' })
+		.png()
+		.toBuffer();
 
 		const artwork = await sharp(artworkBase)
-			.extend({ bottom: 29, background: 'transparent' })
-			.toBuffer();
+		.extend({ bottom: 29, background: 'transparent' })
+		.toBuffer();
 
 		const bg = sharp(Buffer.from(`
 			<svg width="144" height="144" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -162,8 +162,8 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 							<stop offset="1" stop-color="#5f8ebb" />
 					</linearGradient>
 				</defs>
-			</svg>`
-		))
+			</svg>`,
+		));
 
 		const discountText = await sharp({
 			text: {
@@ -174,9 +174,9 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 				rgba: true,
 			},
 		})
-			.extend({ top: 8, bottom: 8, left: 8, right: 8, background: '#4c6b22' })
-			.png()
-			.toBuffer();
+		.extend({ top: 8, bottom: 8, left: 8, right: 8, background: '#4c6b22' })
+		.png()
+		.toBuffer();
 
 		const priceText = await sharp({
 			text: {
@@ -187,16 +187,16 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 				rgba: true,
 			},
 		})
-			.extend({ bottom: 15, background: 'transparent' })
-			.png()
-			.toBuffer();
+		.extend({ bottom: 15, background: 'transparent' })
+		.png()
+		.toBuffer();
 
 		const compositeInputs = [
 			{ input: artwork, gravity: 'center' },
-			{ input: priceText, gravity: 'south' }
+			{ input: priceText, gravity: 'south' },
 		];
 		if (discountPercent) {
-			compositeInputs.push({ input: discountText, gravity: 'northeast' })
+			compositeInputs.push({ input: discountText, gravity: 'northeast' });
 		}
 
 		const image = await bg.composite(compositeInputs).png().toBuffer();

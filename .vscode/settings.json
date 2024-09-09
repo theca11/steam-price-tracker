@@ -13,5 +13,11 @@
 			],
 			"url": "https://schemas.elgato.com/streamdeck/plugins/layout.json"
 		}
-	]
+	],
+	"eslint.workingDirectories":  [{"mode": "auto"}],
+	"eslint.validate": ["javascript", "typescript"],
+	"eslint.format.enable": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	}
 }
