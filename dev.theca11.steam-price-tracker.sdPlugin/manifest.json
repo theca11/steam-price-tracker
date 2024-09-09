@@ -1,6 +1,6 @@
 {
 	"Name": "Steam Price Tracker",
-	"Version": "0.1.0.0",
+	"Version": "1.0.0.0",
 	"Author": "the_ca11",
 	"Actions": [
 		{
@@ -8,7 +8,6 @@
 			"UUID": "dev.theca11.steam-price-tracker.tracker",
 			"Icon": "imgs/icon",
 			"Tooltip": "Displays the current price of a Steam app",
-			"Controllers": ["Keypad"],
 			"States": [
 				{
 					"Image": "imgs/key"
@@ -22,7 +21,7 @@
 	"CodePath": "bin/plugin.js",
 	"PropertyInspectorPath": "pi/pi.html",
 	"DefaultWindowSize": [500, 510],
-	"Description": "Displays the current price of a Steam app",
+	"Description": "Display the current price of any Steam app. Keep track of discounts and don't miss out on a bargain!",
 	"Icon": "imgs/logo",
 	"SDKVersion": 2,
 	"Software": {
