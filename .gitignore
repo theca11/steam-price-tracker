@@ -4,3 +4,9 @@ node_modules/
 # Stream Deck files
 *.sdPlugin/bin
 *.sdPlugin/logs
+
+*.sdPlugin/CHANGELOG.md
+*.sdPlugin/LICENSE
+*.sdPlugin/3rdparty-licenses.txt
+
+dist/

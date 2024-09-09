@@ -2,7 +2,7 @@
 	"scripts": {
 		"build": "rollup -c",
 		"watch": "rollup -c -w --watch.onEnd=\"streamdeck restart dev.theca11.steam-price-tracker\"",
-		"pack": "streamdeck pack -f -o ./dist ./build/dev.theca11.steam-price-tracker.sdPlugin",
+		"pack": "streamdeck pack -f -o ./dist ./dev.theca11.steam-price-tracker.sdPlugin",
 		"lint": "eslint .",
 		"lint-fix": "eslint --fix ."
 	},
@@ -22,6 +22,8 @@
 		"eslint-plugin-import": "^2.30.0",
 		"eslint-plugin-promise": "^7.1.0",
 		"rollup": "^4.0.2",
+		"rollup-plugin-copy": "^3.5.0",
+		"rollup-plugin-license": "^3.5.2",
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2"
 	},

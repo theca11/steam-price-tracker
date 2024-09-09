@@ -20,7 +20,10 @@
 	"CategoryIcon": "imgs/icon",
 	"CodePath": "bin/plugin.js",
 	"PropertyInspectorPath": "pi/pi.html",
-	"DefaultWindowSize": [500, 510],
+	"DefaultWindowSize": [
+		500,
+		510
+	],
 	"Description": "Display the current price of any Steam app. Keep track of discounts and don't miss out on a bargain!",
 	"Icon": "imgs/logo",
 	"SDKVersion": 2,

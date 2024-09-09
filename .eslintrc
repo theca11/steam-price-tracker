@@ -1,6 +1,6 @@
 {
 	"root": true,
-	"ignorePatterns": ["build", "dist", "*/bin"],
+	"ignorePatterns": ["build", "dist", "*/bin", "rollup.config.mjs"],
 	"extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:promise/recommended"],
 	"plugins": ["@typescript-eslint", "import", "promise"],
 	"parser": "@typescript-eslint/parser",
