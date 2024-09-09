@@ -1,0 +1,52 @@
+name: Create Draft Release
+run-name: Create Draft Release for ${{ github.ref_name }}
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+env:
+  plugin_uuid: dev.theca11.steam-price-tracker
+  release_id: Steam-Price-Tracker-Plugin-${{ github.ref_name }}
+
+jobs:
+  build_release:
+    name: Build & Create Draft Release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+      - name: Install project dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Create distributable file (.streamDeckPlugin)
+        run: npm run pack
+      - name: Rename distributable
+        run: Rename-Item -Path "dist\${{ env.plugin_uuid }}.streamDeckPlugin" -NewName "${{ env.release_id }}.streamDeckPlugin"
+      - name: Get version from tag
+        id: tag_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Parse Changelog Entry
+        id: changelog
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          path: ./CHANGELOG.md
+          version: ${{ steps.tag_version.outputs.version }}
+      - name: Create Github draft release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/${{ env.release_id }}.streamDeckPlugin"
+          artifactErrorsFailBuild: true
+          draft: true
+          name: "[${{ steps.changelog.outputs.version}}] - ${{ steps.changelog.outputs.date }}"
+          body: ${{ steps.changelog.outputs.changes }}
