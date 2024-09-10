@@ -8,7 +8,6 @@ import url from 'node:url';
 import copy from 'rollup-plugin-copy';
 import license from 'rollup-plugin-license';
 
-
 const isWatching = !!process.env.ROLLUP_WATCH;
 const sdPlugin = 'dev.theca11.steam-price-tracker.sdPlugin';
 const banner = `/**
@@ -30,9 +29,9 @@ const pluginConfig = {
 			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath))
 				.href;
 		},
-		banner
+		format: 'cjs',
+		banner,
 	},
-	external: ['sharp'],
 	plugins: [
 		{
 			name: 'watch-externals',
@@ -50,23 +49,31 @@ const pluginConfig = {
 			exportConditions: ['node'],
 			preferBuiltins: true,
 		}),
-		commonjs(),
+		commonjs({ ignoreDynamicRequires: true }),
 		!isWatching && terser(),
 		{
 			name: 'emit-module-package-file',
 			generateBundle() {
 				this.emitFile({
 					fileName: 'package.json',
-					source: `{ "type": "module" }`,
+					source: `{ "type": "commonjs" }`,
 					type: 'asset',
 				});
 			},
 		},
 		copy({
 			targets: [
-				{ src: ['./LICENSE', './CHANGELOG.md'], dest: `${sdPlugin}` },
+				{
+					src: 'node_modules/@img/',
+					dest: `${sdPlugin}/bin/node_modules`,
+				},
 			],
-			verbose: true,
+			copyOnce: true,
+			errorOnExist: false,
+			overwrite: false,
+		}),
+		copy({
+			targets: [{ src: ['./LICENSE', './CHANGELOG.md'], dest: `${sdPlugin}` }],
 			copyOnce: isWatching,
 		}),
 		license({
@@ -76,20 +83,19 @@ const pluginConfig = {
 					file: `${sdPlugin}/3rdparty-licenses.txt`,
 					template(dependencies) {
 						const sortedDeps = dependencies.sort((a, b) =>
-							a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+							a.name < b.name ? -1 : a.name > b.name ? 1 : 0
 						);
 						return [
 							'This file lists third-party dependencies and their corresponding license notice.\n',
 							...sortedDeps.map(
 								(dep) =>
-									`${dep.name} (v${dep.version}) - ${dep.license}\n\n${dep.licenseText}`,
+									`${dep.name} (v${dep.version}) - ${dep.license}\n\n${dep.licenseText}`
 							),
 						].join('\n--------------------\n\n');
 					},
 				},
 			},
 		}),
-
 	],
 };
 
@@ -102,7 +108,7 @@ const piConfig = {
 			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath))
 				.href;
 		},
-		banner
+		banner,
 	},
 	plugins: [
 		{
