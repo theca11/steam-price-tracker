@@ -1,0 +1,41 @@
+div[role='listbox'] {
+	visibility: hidden;
+	position: absolute;
+	top: 30px;
+	left: 103px;
+	margin-right: 34px;
+	width: -webkit-fill-available;
+	height: auto;
+	min-height: 0px !important;
+	max-height: calc(18px * 8);
+	background-color: var(--sdpi-background);
+	color: var(--sdpi-color);
+	border: 1px solid #9a9a9a;
+	overflow-y: auto;
+	box-shadow: 1px 1px 2px 0px black;
+	margin-top: 1px;
+}
+
+div[role='listbox'] option {
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+		sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+	font-size: 9pt;
+	font-weight: normal;
+	color: var(--sdpi-color);
+	display: flex;
+	align-items: center;
+	height: 18px;
+	min-height: 18px;
+	padding: 0px 4px;
+	user-select: none;
+	-webkit-user-select: none;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+div[role='listbox'] option:hover,
+div[role='listbox'] option.active {
+	color: white;
+	background-color: #1967d2;
+	cursor: pointer;
+}

@@ -5,6 +5,7 @@
 		<meta charset="utf-8" />
 		<link rel="stylesheet" href="./css/sdpi.css" />
 		<link rel="stylesheet" href="./css/custom.css" />
+		<link rel="stylesheet" href="./css/combobox.css" />
 		<style>
 			#input {
 				margin-right: 33px;
@@ -32,7 +33,7 @@
 	</head>
 	<body>
 		<div class="sdpi-wrapper">
-			<div class="sdpi-item">
+			<div class="sdpi-item" id="combobox">
 				<div class="sdpi-item-label">App Name or ID</div>
 				<input
 					class="sdpi-item-value"
@@ -40,6 +41,7 @@
 					value=""
 					placeholder="Enter Steam App Name or ID"
 				/>
+				<div id="applist" role="listbox"></div>
 				<img class="indicator" src="./assets/error.svg" />
 			</div>
 			<div class="sdpi-item">

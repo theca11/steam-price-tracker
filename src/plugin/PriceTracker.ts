@@ -1,4 +1,5 @@
 import streamDeck, { action, KeyDownEvent, KeyUpEvent, MessageRequest, route, WillAppearEvent, WillDisappearEvent } from '@elgato/streamdeck';
+import uFuzzy from '@leeoniya/ufuzzy';
 import Cron from 'croner';
 import open from 'open';
 import sharp from 'sharp';
@@ -14,6 +15,8 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 	appListLastUpdated = 0;
 	countryCode: string | null = null;
 
+	uf = new uFuzzy({ intraMode: 1 });
+
 	constructor() {
 		super();
 		streamDeck.settings.onDidReceiveGlobalSettings<GlobalSettings>((ev) => {
@@ -25,6 +28,8 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 			streamDeck.logger.debug('Performing scheduled update');
 			this.updateVisible();
 		});
+
+		this.fetchAppList();
 	}
 
 	onWillAppear(ev: WillAppearEvent<ActionSettings>): Promise<void> | void {
@@ -56,12 +61,18 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		this.fetchAppList();
 	}
 
+	@route('/fetch-list')
+	getList() {
+		return [...new Set(this.appsList.map(app => app.name))];
+	}
+
 	@route('/search')
 	async search(req: MessageRequest<string>): Promise<boolean> {
 		const controller = req.action;
 		const { id } = controller;
 		const input = req.body?.toLowerCase().trim();
-		const foundApp = this.appsList.find(app => app.name.toLowerCase().trim() === input || app.appid.toString() === input);
+
+		const foundApp = this.appsList.find(app => app.name.toLowerCase().trim() === input || (isFinite(Number(input)) && app.appid.toString() === input));
 		if (foundApp) {
 			streamDeck.logger.debug(`Search found app for ${input}`, foundApp);
 			controller.setSettings({ name: foundApp.name, appId: foundApp.appid });
