@@ -1,5 +1,6 @@
 import streamDeck, { action, KeyDownEvent, KeyUpEvent, MessageRequest, route, WillAppearEvent, WillDisappearEvent } from '@elgato/streamdeck';
 import Cron from 'croner';
+import open from 'open';
 import sharp from 'sharp';
 import { ActionSettings, AppInfo, AppsListResponse, GlobalSettings, StoreAppInfo, StoreResponse } from '../types';
 import { AbstractAction } from './AbstractAction';
@@ -41,7 +42,8 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 	onSinglePress(ev: KeyUpEvent<ActionSettings>): void | Promise<void> {
 		const { appId } = ev.payload.settings;
 		if (!appId) return;
-		streamDeck.system.openUrl(`https://store.steampowered.com/app/${appId}`);
+		open(`steam://store/${appId}`);
+		ev.action.showOk();
 	}
 
 	onLongPress(ev: KeyDownEvent<ActionSettings>): void | Promise<void> {
