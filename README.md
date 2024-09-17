@@ -21,7 +21,7 @@ Steam Price Tracker plugin displays the current price of any Steam app. Keep tra
 
 -   The plugin can't find an app.
 
-    Make sure you're writing the name of the app as it appears on the Steam Store. Partial matches will fail. If it still doesn't find it, use the app ID number instead of the name - it's part of the store page URL.
+    Make sure you're writing the name of the app as it appears on the Steam Store. If it still doesn't find it, try using the app ID number instead of the name - it's part of the store page URL.
 
 -   The displayed price is incorrect and/or is in the wrong currency.
 
