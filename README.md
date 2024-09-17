@@ -19,11 +19,12 @@ Steam Price Tracker plugin displays the current price of any Steam app. Keep tra
 
 ## Troubleshooting
 
--   The plugin can't find an app.
+-   <u>The plugin can't find an app.</u>
 
     Make sure you're writing the name of the app as it appears on the Steam Store. If it still doesn't find it, try using the app ID number instead of the name - it's part of the store page URL.
 
--   The displayed price is incorrect and/or is in the wrong currency.
+
+-   <u>The displayed price is incorrect and/or is in the wrong currency.</u>
 
     By default prices are shown based on the store region detected by Steam. If this detection is wrong or you want to display prices of a different region, change the <b>Store Country</b> setting. This setting is shared among all keys, you only need to configure it once.
 
