@@ -29,9 +29,9 @@ const pluginConfig = {
 			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath))
 				.href;
 		},
-		format: 'cjs',
 		banner,
 	},
+	external: ['sharp'],
 	plugins: [
 		{
 			name: 'watch-externals',
@@ -49,18 +49,8 @@ const pluginConfig = {
 			exportConditions: ['node'],
 			preferBuiltins: true,
 		}),
-		commonjs({ ignoreDynamicRequires: true }),
+		commonjs(),
 		!isWatching && terser(),
-		{
-			name: 'emit-module-package-file',
-			generateBundle() {
-				this.emitFile({
-					fileName: 'package.json',
-					source: `{ "type": "commonjs" }`,
-					type: 'asset',
-				});
-			},
-		},
 		copy({
 			targets: [
 				{

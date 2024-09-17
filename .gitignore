@@ -2,7 +2,9 @@
 node_modules/
 
 # Stream Deck files
-*.sdPlugin/bin
+*.sdPlugin/bin/*
+!*.sdPlugin/bin/package.json
+!*.sdPlugin/bin/package-lock.json
 *.sdPlugin/logs
 
 *.sdPlugin/CHANGELOG.md

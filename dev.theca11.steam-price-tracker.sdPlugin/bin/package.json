@@ -1,0 +1,13 @@
+{
+	"type": "module",
+	"scripts": {
+		"all-sharp": "npm run sharp-mac-intel && npm run sharp-mac-arm && npm run sharp-win",
+		"sharp-mac-intel": "npm install --cpu=x64 --os=darwin sharp",
+		"sharp-mac-arm": "npm install --cpu=arm64 --os=darwin sharp",
+		"sharp-win": "npm install --cpu=x64 --os=win32 sharp",
+		"postinstall": "npm run all-sharp"
+	},
+	"dependencies": {
+		"sharp": "^0.33.5"
+	}
+}
