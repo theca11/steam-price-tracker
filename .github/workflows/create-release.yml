@@ -29,7 +29,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Create distributable file (.streamDeckPlugin)
-        run: npm run pack
+        run: npm run release
       - name: Rename distributable
         run: Rename-Item -Path "dist\${{ env.plugin_uuid }}.streamDeckPlugin" -NewName "${{ env.release_id }}.streamDeckPlugin"
       - name: Get version from tag
