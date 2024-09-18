@@ -12,3 +12,4 @@ node_modules/
 *.sdPlugin/3rdparty-licenses.txt
 
 dist/
+previews.psd
