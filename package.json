@@ -6,12 +6,7 @@
 		"pack": "streamdeck pack -f -o ./dist ./dev.theca11.steam-price-tracker.sdPlugin",
 		"release": "npm run build && npm run pack",
 		"lint": "eslint .",
-		"lint-fix": "eslint --fix .",
-		"all-sharp": "npm run sharp-mac-intel && npm run sharp-mac-arm && npm run sharp-win",
-		"sharp-mac-intel": "npm install --cpu=x64 --os=darwin sharp",
-		"sharp-mac-arm": "npm install --cpu=arm64 --os=darwin sharp",
-		"sharp-win": "npm install --cpu=x64 --os=win32 sharp",
-		"postinstall": "npm run all-sharp"
+		"lint-fix": "eslint --fix ."
 	},
 	"type": "module",
 	"devDependencies": {
