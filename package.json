@@ -10,7 +10,7 @@
 	},
 	"type": "module",
 	"devDependencies": {
-		"@elgato/cli": "^0.3.2",
+		"@elgato/cli": "^1.0.0",
 		"@rollup/plugin-commonjs": "^25.0.5",
 		"@rollup/plugin-json": "^6.1.0",
 		"@rollup/plugin-node-resolve": "^15.2.2",
@@ -31,7 +31,7 @@
 		"typescript": "^5.2.2"
 	},
 	"dependencies": {
-		"@elgato/streamdeck": "^0.4.0-beta.5",
+		"@elgato/streamdeck": "^1.0.1",
 		"@leeoniya/ufuzzy": "^1.0.14",
 		"croner": "^8.1.1",
 		"debounce": "^2.1.0",

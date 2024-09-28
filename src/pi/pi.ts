@@ -16,7 +16,7 @@ let currentOption = -1;
 let waiting = false;
 
 // Load settings
-streamDeck.onDidConnect(async (_, actionInfo) => {
+streamDeck.onConnected(async (_, actionInfo) => {
 	inputField.value = (actionInfo.payload.settings as ActionSettings).name ?? '';
 	const { cc } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 	selectField.value = cc ?? 'auto';

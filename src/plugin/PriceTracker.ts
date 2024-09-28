@@ -83,7 +83,7 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		streamDeck.logger.debug(`Search did NOT found app for ${input} or issue updating`);
 		controller.setSettings({ name: '', appId: '' });
 		this.visibleContexts.set(id, '');
-		controller.setImage();
+		if (controller.isKey()) controller.setImage();
 		return false;
 	}
 
@@ -136,7 +136,8 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 
 		try {
 			const image = await this.generateImg(capsule_image, price_overview?.final_formatted, price_overview?.discount_percent);
-			const controller = streamDeck.actions.createController(context);
+			const controller = streamDeck.actions.getActionById(context);
+			if (!controller?.isKey()) return false;
 			controller.setImage('data:image/png;base64,' + image.toString('base64'), { target: 0 });
 			this.updatedContexts.set(context, Date.now());
 			streamDeck.logger.debug(`Updated ${name} - ${price_overview?.final_formatted}`);
