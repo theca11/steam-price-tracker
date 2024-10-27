@@ -34,8 +34,13 @@ export type StoreAppInfo = {
 	name: string,
 	steam_appid: number,
 	capsule_image: string,
+	is_free: boolean,
 	price_overview?: {
 		final_formatted: string
 		discount_percent: number,
+	},
+	release_date: {
+		coming_soon: boolean,
+		date: string
 	}
 };

@@ -71,8 +71,9 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		const controller = req.action;
 		const { id } = controller;
 		const input = req.body?.toLowerCase().trim();
+		if (!input) return false;
 
-		const foundApp = this.appsList.find(app => app.name.toLowerCase().trim() === input || (isFinite(Number(input)) && app.appid.toString() === input));
+		const foundApp = await this.findApp(input);
 		if (foundApp) {
 			streamDeck.logger.debug(`Search found app for ${input}`, foundApp);
 			controller.setSettings({ name: foundApp.name, appId: foundApp.appid });
@@ -102,13 +103,22 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 
 	async fetchStoreAppInfo(appId: string): Promise<StoreAppInfo | null> {
 		try {
-			const req = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}&filters=basic,price_overview&cc=${this.countryCode}`);
+			const req = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}&filters=basic,price_overview,release_date&cc=${this.countryCode}`);
 			const res = await req.json() as StoreResponse;
 			return res[appId].success ? res[appId].data : null;
 		}
 		catch (e) {
 			streamDeck.logger.error('Error fetching store app info', e);
 			return null;
+		}
+	}
+
+	async findApp(input: string): Promise<{ name: string, appid: string } | undefined> {
+		const foundApp = this.appsList.find(app => app.name.toLowerCase().trim() === input || (isFinite(Number(input)) && app.appid.toString() === input));
+		if (foundApp) return foundApp;
+		if (isFinite(Number(input))) {
+			const storeInfo = await this.fetchStoreAppInfo(input);
+			if (storeInfo) return { name: storeInfo.name, appid: storeInfo.steam_appid.toString() };
 		}
 	}
 
@@ -132,10 +142,11 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 
 		const info = await this.fetchStoreAppInfo(appId);
 		if (!info) return false;
-		const { name, capsule_image, price_overview } = info;
+		const { name, capsule_image, is_free, price_overview, release_date } = info;
 
 		try {
-			const image = await this.generateImg(capsule_image, price_overview?.final_formatted, price_overview?.discount_percent);
+			const price = is_free ? 'Free' : price_overview?.final_formatted ?? 'TBA';
+			const image = await this.generateImg(capsule_image, price, price_overview?.discount_percent, release_date.coming_soon ? release_date.date : 'Released');
 			const controller = streamDeck.actions.getActionById(context);
 			if (!controller?.isKey()) return false;
 			controller.setImage('data:image/png;base64,' + image.toString('base64'), { target: 0 });
@@ -149,7 +160,7 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		}
 	}
 
-	async generateImg(artworkUrl: string, finalPrice: string = 'Free', discountPercent: number = 0) {
+	async generateImg(artworkUrl: string, price: string = 'Free', discountPercent: number = 0, releaseDate: string = 'Released') {
 		const req = await fetch(artworkUrl);
 		const artworkBuffer = await req.arrayBuffer();
 		const artworkBase = await sharp(artworkBuffer)
@@ -179,6 +190,19 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 			</svg>`,
 		));
 
+		const priceText = await sharp({
+			text: {
+				text: `<span font="Arial" weight="bold" fgcolor="${discountPercent ? '#beee11' : 'white'}" bgcolor="white" bgalpha="1">${price}</span>`,
+				width: 130,
+				dpi: 160,
+				align: 'center',
+				rgba: true,
+			},
+		})
+		.extend({ bottom: 15, background: 'transparent' })
+		.png()
+		.toBuffer();
+
 		const discountText = await sharp({
 			text: {
 				text: `<span font="Arial" weight="bold" font_style="italic" fgcolor="#beee11" bgcolor="#4c6b22">- ${discountPercent}%</span>`,
@@ -192,24 +216,35 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		.png()
 		.toBuffer();
 
-		const priceText = await sharp({
+		const releaseTextBg = sharp({
+			create: {
+				width: 144,
+				height: 30,
+				channels: 4,
+				background: '#1d80b8',
+			},
+		});
+		const releaseText = await sharp({
 			text: {
-				text: `<span font="Arial" weight="bold" fgcolor="${discountPercent ? '#beee11' : 'white'}" bgcolor="white" bgalpha="1">${finalPrice}</span>`,
-				width: 130,
-				dpi: 160,
+				text: `<span font="Arial" weight="bold" font_style="italic" fgcolor="#ffffff" fgalpha="90%" bgcolor="#000000" bgalpha="1">${releaseDate}</span>`,
+				width: 120,
+				height: 20,
+				wrap: 'none',
 				align: 'center',
 				rgba: true,
 			},
 		})
-		.extend({ bottom: 15, background: 'transparent' })
 		.png()
 		.toBuffer();
+		const releaseInput = await releaseTextBg.composite([{ input: releaseText, gravity: 'center' }]).png().toBuffer();
 
-		const compositeInputs = [
-			{ input: artwork, gravity: 'center' },
-			{ input: priceText, gravity: 'south' },
-		];
-		if (discountPercent) {
+		const compositeInputs = [];
+		if (releaseDate !== 'Released') {
+			compositeInputs.push({ input: releaseInput, gravity: 'north' });
+		}
+		compositeInputs.push({ input: artwork, gravity: 'center' });
+		compositeInputs.push({ input: priceText, gravity: 'south' });
+		if (discountPercent && releaseDate == 'Released') {
 			compositeInputs.push({ input: discountText, gravity: 'northeast' });
 		}
 
