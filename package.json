@@ -1,5 +1,6 @@
 {
 	"scripts": {
+		"link": "streamdeck link ./dev.theca11.steam-price-tracker.sdPlugin",
 		"build": "rollup -c",
 		"watch": "rollup -c -w --watch.onEnd=\"streamdeck restart dev.theca11.steam-price-tracker\"",
 		"prepack": "cd ./dev.theca11.steam-price-tracker.sdPlugin/bin && del-cli -d ./node_modules && npm install --no-package-lock",
