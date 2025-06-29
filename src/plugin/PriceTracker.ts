@@ -14,6 +14,7 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 	appsList: AppInfo[] = [];
 	appListLastUpdated = 0;
 	countryCode: string | null = null;
+	hideCurrency: boolean = false;
 
 	uf = new uFuzzy({ intraMode: 1 });
 
@@ -21,6 +22,7 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		super();
 		streamDeck.settings.onDidReceiveGlobalSettings<GlobalSettings>((ev) => {
 			this.countryCode = ev.settings.cc ?? 'auto';
+			this.hideCurrency = !!ev.settings.hideCurrency;
 			streamDeck.logger.debug(`Country code set to ${this.countryCode}`);
 			this.updateVisible();
 		});
@@ -145,7 +147,7 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		const { name, capsule_image, is_free, price_overview, release_date } = info;
 
 		try {
-			const price = is_free ? 'Free' : price_overview?.final_formatted ?? 'TBA';
+			const price = is_free ? 'Free' : this.formatPriceString(price_overview?.final_formatted) ?? 'TBA';
 			const image = await this.generateImg(capsule_image, price, price_overview?.discount_percent, release_date.coming_soon ? release_date.date : 'Released');
 			const controller = streamDeck.actions.getActionById(context);
 			if (!controller?.isKey()) return false;
@@ -158,6 +160,10 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 			streamDeck.logger.error('Error while generating image on update', e);
 			return false;
 		}
+	}
+
+	formatPriceString(price?: string): string | undefined {
+		return this.hideCurrency ? price?.match(/[\d.,]+/)?.at(0) : price;
 	}
 
 	async generateImg(artworkUrl: string, price: string = 'Free', discountPercent: number = 0, releaseDate: string = 'Released') {

@@ -8,6 +8,7 @@ const inputField = document.querySelector('#input') as HTMLInputElement;
 const applist = document.querySelector('#applist') as HTMLDivElement;
 const selectField = document.querySelector('#cc-select') as HTMLSelectElement;
 const indicator = document.querySelector('.indicator') as HTMLImageElement;
+const currencyCheckbox = document.querySelector('#currency') as HTMLInputElement;
 
 const uf = new uFuzzy();
 let apps: string[] = [];
@@ -18,8 +19,9 @@ let waiting = false;
 // Load settings
 streamDeck.onConnected(async (_, actionInfo) => {
 	inputField.value = (actionInfo.payload.settings as ActionSettings).name ?? '';
-	const { cc } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+	const { cc, hideCurrency } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 	selectField.value = cc ?? 'auto';
+	currencyCheckbox.checked = !!hideCurrency;
 	indicator.src = inputField.value ? './assets/check.svg' : './assets/error.svg';
 	fetchAppList();
 });
@@ -68,7 +70,11 @@ inputField.addEventListener('input', (ev) => {
 });
 
 selectField.addEventListener('change', (ev) => {
-	streamDeck.settings.setGlobalSettings({ cc: (ev.target as HTMLSelectElement).value });
+	streamDeck.settings.setGlobalSettings({ cc: (ev.target as HTMLSelectElement).value, hideCurrency: currencyCheckbox.checked });
+});
+
+currencyCheckbox.addEventListener('input', (ev) => {
+	streamDeck.settings.setGlobalSettings({ cc: selectField.value, hideCurrency: (ev.target as HTMLInputElement).checked });
 });
 
 // Get app list

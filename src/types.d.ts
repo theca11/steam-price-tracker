@@ -1,6 +1,7 @@
 // -- Plugin settings
 export type GlobalSettings = {
 	cc?: string;
+	hideCurrency?: boolean
 }
 
 export type ActionSettings = {
