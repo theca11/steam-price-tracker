@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/github/v/release/theca11/steam-price-tracker?label=%20&color=darkblue" />
-  <a href="https://marketplace.elgato.com/product/steam-price-tracker-8fada3a4-33c9-47df-a156-9aa79158ea82"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmp-gateway.elgato.com%2Forganizations%2F913da1d8-3f18-4c3f-8a25-e4f7d812380a%2Fproducts%2F8fada3a4-33c9-47df-a156-9aa79158ea82&query=download_count&prefix=Elgato%20Marketplace%20%7C%20&suffix=%20downloads&logo=elgato&logoColor=white&label=%20&labelColor=1231ac&color=gray" alt="Elgato Marketplace" /></a>
+  <a href="https://marketplace.elgato.com/product/steam-price-tracker-8fada3a4-33c9-47df-a156-9aa79158ea82"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmp-gateway.elgato.com%2Fproducts%2F8fada3a4-33c9-47df-a156-9aa79158ea82&query=download_count&prefix=Elgato%20Marketplace%20%7C%20&suffix=%20downloads&logo=elgato&logoColor=white&label=%20&labelColor=1231ac&color=gray" alt="Elgato Marketplace" /></a>
   <a href="https://discord.gg/yFce5NEDak"><img src="https://img.shields.io/badge/Discord-gray?logo=discord&logoColor=white&labelColor=6A7EC2&color=gray" alt="Discord Support" /></a>
   <a href="https://ko-fi.com/the_ca11"><img src="https://img.shields.io/badge/Ko--fi-gray?logo=kofi&logoColor=white&labelColor=red&color=gray" alt="Ko-fi donate" /></a>
 </p>
