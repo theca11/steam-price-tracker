@@ -1,9 +1,8 @@
 import streamDeck, { action, KeyDownEvent, KeyUpEvent, MessageRequest, route, WillAppearEvent, WillDisappearEvent } from '@elgato/streamdeck';
-import uFuzzy from '@leeoniya/ufuzzy';
 import Cron from 'croner';
 import open from 'open';
 import sharp from 'sharp';
-import { ActionSettings, AppInfo, AppsListResponse, GlobalSettings, StoreAppInfo, StoreResponse } from '../types';
+import { ActionSettings, GlobalSettings, StoreAppInfo, StoreResponse } from '../types';
 import { AbstractAction } from './AbstractAction';
 
 
@@ -11,12 +10,9 @@ import { AbstractAction } from './AbstractAction';
 export class PriceTracker extends AbstractAction<ActionSettings> {
 	visibleContexts = new Map<string, string>(); // <context, appId>
 	updatedContexts = new Map<string, number>(); // <context, timestamp>
-	appsList: AppInfo[] = [];
 	appListLastUpdated = 0;
 	countryCode: string | null = null;
 	hideCurrency: boolean = false;
-
-	uf = new uFuzzy({ intraMode: 1 });
 
 	constructor() {
 		super();
@@ -30,8 +26,6 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 			streamDeck.logger.debug('Performing scheduled update');
 			this.updateVisible();
 		});
-
-		this.fetchAppList();
 	}
 
 	onWillAppear(ev: WillAppearEvent<ActionSettings>): Promise<void> | void {
@@ -59,21 +53,12 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		this.updateVisible();
 	}
 
-	onPropertyInspectorDidAppear(): Promise<void> | void {
-		this.fetchAppList();
-	}
-
-	@route('/fetch-list')
-	getList() {
-		return [...new Set(this.appsList.map(app => app.name))];
-	}
-
 	@route('/search')
-	async search(req: MessageRequest<string>): Promise<boolean> {
+	async search(req: MessageRequest<string>): Promise<string> {
 		const controller = req.action;
 		const { id } = controller;
 		const input = req.body?.toLowerCase().trim();
-		if (!input) return false;
+		if (!input) return '';
 
 		const foundApp = await this.findApp(input);
 		if (foundApp) {
@@ -81,26 +66,13 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 			controller.setSettings({ name: foundApp.name, appId: foundApp.appid });
 			this.visibleContexts.set(id, foundApp.appid);
 			const success = await this.update(id, foundApp.appid, true);
-			if (success) return true;
+			if (success) return foundApp.name;
 		}
 		streamDeck.logger.debug(`Search did NOT found app for ${input} or issue updating`);
 		controller.setSettings({ name: '', appId: '' });
 		this.visibleContexts.set(id, '');
 		if (controller.isKey()) controller.setImage();
-		return false;
-	}
-
-	async fetchAppList() {
-		if (Date.now() - this.appListLastUpdated < 15 * 60 * 1000) return;
-		try {
-			const req = await fetch('https://api.steampowered.com/ISteamApps/GetAppList/v2/');
-			const json = await req.json() as AppsListResponse;
-			this.appsList = json.applist.apps.filter(app => app.name && app.appid);
-			this.appListLastUpdated = Date.now();
-		}
-		catch (e) {
-			streamDeck.logger.error('Error fetching apps list', e);
-		}
+		return '';
 	}
 
 	async fetchStoreAppInfo(appId: string): Promise<StoreAppInfo | null> {
@@ -116,8 +88,6 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 	}
 
 	async findApp(input: string): Promise<{ name: string, appid: string } | undefined> {
-		const foundApp = this.appsList.find(app => app.name.toLowerCase().trim() === input || (isFinite(Number(input)) && app.appid.toString() === input));
-		if (foundApp) return foundApp;
 		if (isFinite(Number(input))) {
 			const storeInfo = await this.fetchStoreAppInfo(input);
 			if (storeInfo) return { name: storeInfo.name, appid: storeInfo.steam_appid.toString() };
