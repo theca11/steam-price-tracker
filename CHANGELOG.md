@@ -2,6 +2,16 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-04
+
+### Added
+
+- Ability to search app by Steam store url (in addition of using app ID)
+
+### Removed
+
+- Ability to search app by name, due to Steam deprecating a core API endpoint supporting this feature
+
 ## [1.2.0] - 2025-06-29
 
 ### Added
