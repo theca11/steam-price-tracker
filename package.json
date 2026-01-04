@@ -33,7 +33,6 @@
 	},
 	"dependencies": {
 		"@elgato/streamdeck": "^1.0.1",
-		"@leeoniya/ufuzzy": "^1.0.14",
 		"croner": "^8.1.2",
 		"debounce": "^2.1.0",
 		"open": "^10.1.0",
