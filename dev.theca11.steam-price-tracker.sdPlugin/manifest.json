@@ -27,9 +27,9 @@
 	],
 	"Description": "Display the current price of any Steam app. Keep track of discounts and don't miss out on a bargain!",
 	"Icon": "imgs/logo",
-	"SDKVersion": 2,
+	"SDKVersion": 3,
 	"Software": {
-		"MinimumVersion": "6.5"
+		"MinimumVersion": "6.9"
 	},
 	"OS": [
 		{
