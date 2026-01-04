@@ -12,7 +12,7 @@ let waiting = false;
 // Load settings
 streamDeck.onConnected(async (_, actionInfo) => {
 	const { appId, name } = actionInfo.payload.settings as ActionSettings;
-	inputField.value = `${appId} (${name})`;
+	if (appId && name) inputField.value = `${appId} (${name})`;
 	const { cc, hideCurrency } = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 	selectField.value = cc ?? 'auto';
 	currencyCheckbox.checked = !!hideCurrency;
@@ -21,15 +21,15 @@ streamDeck.onConnected(async (_, actionInfo) => {
 
 // Save settings
 async function search(input: string) {
-	const { body: appName } = await streamDeck.plugin.fetch({ path: '/search', body: input });
-	if (appName) {
-		indicator.src = './assets/check.svg';
-		inputField.value = `${input} (${appName})`;
-	}
-	else {
-		indicator.src = './assets/error.svg';
-	}
+	const { body } = await streamDeck.plugin.fetch({ path: '/search', body: input });
 	waiting = false;
+	if (!body) {
+		indicator.src = './assets/error.svg';
+		return;
+	}
+	const { name, appId } = body as { name: string, appId: string };
+	indicator.src = './assets/check.svg';
+	inputField.value = `${appId} (${name})`;
 }
 const debouncedSearch = debounce(search, 500);
 

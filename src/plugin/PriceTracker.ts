@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import { ActionSettings, GlobalSettings, StoreAppInfo, StoreResponse } from '../types';
 import { AbstractAction } from './AbstractAction';
 
+const STORE_URL_REGEX = /https:\/\/store\.steampowered\.com\/app\/(?<appid>\d+)\//;
 
 @action({ UUID: 'dev.theca11.steam-price-tracker.tracker' })
 export class PriceTracker extends AbstractAction<ActionSettings> {
@@ -54,25 +55,25 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 	}
 
 	@route('/search')
-	async search(req: MessageRequest<string>): Promise<string> {
+	async search(req: MessageRequest<string>): Promise<{ name: string, appId: string } | undefined> {
 		const controller = req.action;
 		const { id } = controller;
 		const input = req.body?.toLowerCase().trim();
-		if (!input) return '';
+		if (!input) return;
 
 		const foundApp = await this.findApp(input);
 		if (foundApp) {
 			streamDeck.logger.debug(`Search found app for ${input}`, foundApp);
-			controller.setSettings({ name: foundApp.name, appId: foundApp.appid });
-			this.visibleContexts.set(id, foundApp.appid);
-			const success = await this.update(id, foundApp.appid, true);
-			if (success) return foundApp.name;
+			controller.setSettings({ name: foundApp.name, appId: foundApp.appId });
+			this.visibleContexts.set(id, foundApp.appId);
+			const success = await this.update(id, foundApp.appId, true);
+			if (success) return { name: foundApp.name, appId: foundApp.appId };
 		}
 		streamDeck.logger.debug(`Search did NOT found app for ${input} or issue updating`);
 		controller.setSettings({ name: '', appId: '' });
 		this.visibleContexts.set(id, '');
 		if (controller.isKey()) controller.setImage();
-		return '';
+		return;
 	}
 
 	async fetchStoreAppInfo(appId: string): Promise<StoreAppInfo | null> {
@@ -87,11 +88,12 @@ export class PriceTracker extends AbstractAction<ActionSettings> {
 		}
 	}
 
-	async findApp(input: string): Promise<{ name: string, appid: string } | undefined> {
-		if (isFinite(Number(input))) {
-			const storeInfo = await this.fetchStoreAppInfo(input);
-			if (storeInfo) return { name: storeInfo.name, appid: storeInfo.steam_appid.toString() };
-		}
+	async findApp(input: string): Promise<{ name: string, appId: string } | undefined> {
+		if (!input) return;
+		const appId = isFinite(Number(input)) ? input : STORE_URL_REGEX.exec(input)?.groups?.appid;
+		if (!appId) return;
+		const storeInfo = await this.fetchStoreAppInfo(appId);
+		if (storeInfo) return { name: storeInfo.name, appId: storeInfo.steam_appid.toString() };
 	}
 
 	isUpToDate(context: string): boolean {
